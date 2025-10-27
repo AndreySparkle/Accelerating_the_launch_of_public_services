@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:element name="AppDataRequest">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="SetRequest">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="orderId" type="xsd:string"/>
+              <xsd:element name="ServiceCode" type="xsd:string"/>
+              <xsd:element name="ServiceName" type="xsd:string"/>
+              <xsd:element name="userData">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="lastName" type="xsd:string"/>
+                    <xsd:element name="firstName" type="xsd:string"/>
+                    <xsd:element name="middleName" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="birthDate" type="xsd:date"/>
+                    <xsd:element name="Sex" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="Snils" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="phone" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="Email" type="xsd:string" minOccurs="0"/>
+                  </xsd:sequence>
+                </xsd:complexType>
+              </xsd:element>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

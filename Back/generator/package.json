@@ -1,0 +1,15 @@
+{
+  "name": "gosuslugi-generator",
+  "version": "1.0.0",
+  "description": "Генератор VM-шаблонов для ЕПГУ",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^27.0.0"
+  },
+  "author": "Ваше имя",
+  "license": "MIT"
+}
