@@ -1,5 +1,5 @@
 interface IHelperButton {
-  title: string;
+  title: string
 }
 
 export const helperButtons: IHelperButton[] = [
@@ -11,5 +11,5 @@ export const helperButtons: IHelperButton[] = [
   },
   {
     title: 'Помощь'
-  },
+  }
 ]

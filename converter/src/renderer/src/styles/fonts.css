@@ -1,42 +1,42 @@
 @font-face {
-  src: url("../assets/fonts/ALSEkibastuz-Regular.woff2");
-  font-family: "ALSEkibastuz";
+  src: url('../assets/fonts/ALSEkibastuz-Regular.woff2');
+  font-family: 'ALSEkibastuz';
   font-weight: 400;
   font-display: swap;
   font-style: normal;
 }
 @font-face {
-  src: url("../assets/fonts/ALSEkibastuz-Bold.woff2");
-  font-family: "ALSEkibastuz";
+  src: url('../assets/fonts/ALSEkibastuz-Bold.woff2');
+  font-family: 'ALSEkibastuz';
   font-weight: 700;
   font-display: swap;
   font-style: normal;
 }
 @font-face {
-  src: url("../assets/fonts/ALSEkibastuz-Heavy.woff2");
-  font-family: "ALSEkibastuz";
+  src: url('../assets/fonts/ALSEkibastuz-Heavy.woff2');
+  font-family: 'ALSEkibastuz';
   font-weight: 900;
   font-display: swap;
   font-style: normal;
 }
 
 @font-face {
-  src: url("../assets/fonts/Lato-Regular.woff2");
-  font-family: "Lato";
+  src: url('../assets/fonts/Lato-Regular.woff2');
+  font-family: 'Lato';
   font-weight: 400;
   font-display: swap;
   font-style: normal;
 }
 @font-face {
-  src: url("../assets/fonts/Lato-Bold.woff2");
-  font-family: "Lato";
+  src: url('../assets/fonts/Lato-Bold.woff2');
+  font-family: 'Lato';
   font-weight: 700;
   font-display: swap;
   font-style: normal;
 }
 @font-face {
-  src: url("../assets/fonts/Lato-Black.woff2");
-  font-family: "Lato";
+  src: url('../assets/fonts/Lato-Black.woff2');
+  font-family: 'Lato';
   font-weight: 900;
   font-display: swap;
   font-style: normal;
