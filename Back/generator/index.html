@@ -1,48 +1,307 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генератор VM-шаблонов для ЕПГУ</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: 300;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        main {
+            padding: 40px;
+        }
+
+        .file-section {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .file-section:hover {
+            border-color: #667eea;
+            background: #f1f3f4;
+            transform: translateY(-2px);
+        }
+
+        .file-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-section h3::before {
+            content: "📁";
+            font-size: 20px;
+        }
+
+        .file-section:nth-child(1) h3::before { content: "1️⃣"; }
+        .file-section:nth-child(2) h3::before { content: "2️⃣"; }
+        .file-section:nth-child(3) h3::before { content: "3️⃣"; }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .status {
+            margin-left: 15px;
+            color: #7f8c8d;
+            font-style: italic;
+            font-size: 14px;
+        }
+
+        .status.ready {
+            color: #27ae60;
+            font-weight: 500;
+        }
+
+        .action-section {
+            text-align: center;
+            margin: 40px 0;
+            padding: 30px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+        }
+
+        .action-section button {
+            padding: 15px 40px;
+            font-size: 18px;
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.3);
+        }
+
+        .action-section button:hover:not(:disabled) {
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+        }
+
+        .result-section {
+            background: #2c3e50;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 30px;
+            display: none;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-section h3 {
+            color: #ecf0f1;
+            margin-bottom: 20px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-section h3::before {
+            content: "⚡";
+        }
+
+        #result {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #34495e;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            background: #1a252f;
+            color: #ecf0f1;
+            resize: vertical;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        .result-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .result-actions button {
+            flex: 1;
+            max-width: 200px;
+        }
+
+        #saveBtn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        #copyBtn {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3);
+        }
+
+        .file-info {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            main {
+                padding: 20px;
+            }
+            
+            .result-actions {
+                flex-direction: column;
+            }
+            
+            .result-actions button {
+                max-width: none;
+            }
+        }
+
+        /* Анимация загрузки */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>Генератор VM-шаблонов для ЕПГУ</h1>
+            <div class="subtitle">Автоматическая генерация Velocity-шаблонов для интеграции с ведомственными системами</div>
         </header>
         
         <main>
-            <!-- Секции для загрузки файлов -->
             <div class="file-section" id="jsonSection">
-                <h3>1. JSON-схема услуги (ЕПГУ)</h3>
-                <button id="loadJsonSchema">Выбрать файл</button>
-                <span class="status" id="jsonSchemaStatus">Не выбран</span>
+                <h3>JSON-схема услуги (ЕПГУ)</h3>
+                <button id="loadJsonSchema">Выбрать файл JSON</button>
+                <span class="status" id="jsonSchemaStatus">Файл не выбран</span>
+                <div class="file-info">Описание полей формы с портала Госуслуг</div>
             </div>
             
             <div class="file-section" id="xsdSection">
-                <h3>2. XSD-схема вида сведений (ВИС)</h3>
-                <button id="loadXsdSchema">Выбрать файл</button>
-                <span class="status" id="xsdSchemaStatus">Не выбран</span>
+                <h3>XSD-схема вида сведений (ВИС)</h3>
+                <button id="loadXsdSchema">Выбрать файл XSD</button>
+                <span class="status" id="xsdSchemaStatus">Файл не выбран</span>
+                <div class="file-info">Структура данных, которую ожидает внутренняя система</div>
             </div>
             
             <div class="file-section" id="testDataSection">
-                <h3>3. Тестовые заявления (JSON)</h3>
-                <button id="loadTestData">Выбрать файлы</button>
-                <span class="status" id="testDataStatus">Не выбраны</span>
+                <h3>Тестовые заявления (JSON)</h3>
+                <button id="loadTestData">Выбрать файлы JSON</button>
+                <span class="status" id="testDataStatus">Файлы не выбраны</span>
+                <div class="file-info">Примеры заполненных форм (можно выбрать несколько)</div>
             </div>
             
-            <!-- Кнопка генерации -->
             <div class="action-section">
-                <button id="generateBtn" disabled>Сгенерировать шаблон</button>
+                <button id="generateBtn" disabled>
+                    <span class="btn-text">Сгенерировать шаблон</span>
+                </button>
             </div>
             
-            <!-- Результат -->
-            <div class="result-section" id="resultSection" style="display: none;">
-                <h3>Результат:</h3>
-                <textarea id="result" readonly></textarea>
+            <div class="result-section" id="resultSection">
+                <h3>Сгенерированный VM-шаблон</h3>
+                <textarea id="result" readonly placeholder="Здесь появится сгенерированный шаблон..."></textarea>
                 <div class="result-actions">
-                    <button id="saveBtn">Сохранить как .vm файл</button>
-                    <button id="copyBtn">Скопировать в буфер</button>
+                    <button id="saveBtn">💾 Сохранить как .vm файл</button>
+                    <button id="copyBtn">📋 Скопировать в буфер</button>
                 </div>
             </div>
         </main>

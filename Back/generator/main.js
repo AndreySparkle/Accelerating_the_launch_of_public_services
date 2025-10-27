@@ -1,8 +1,6 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
-
-// Добавляем импорт remote
-require('@electron/remote/main').initialize();
+const fs = require('fs');
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -10,15 +8,30 @@ function createWindow() {
     height: 800,
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false,
-      enableRemoteModule: true
+      contextIsolation: false
     }
   });
 
-  // Активируем remote для окна
-  require('@electron/remote/main').enable(mainWindow.webContents);
-
   mainWindow.loadFile('index.html');
 }
+
+// Обработчики для диалогов
+ipcMain.handle('dialog:openFile', async (event, options) => {
+  const result = await dialog.showOpenDialog(options);
+  return result;
+});
+
+ipcMain.handle('dialog:saveFile', async (event, options) => {
+  const result = await dialog.showSaveDialog(options);
+  return result;
+});
+
+ipcMain.handle('file:read', async (event, filePath) => {
+  return fs.readFileSync(filePath, 'utf8');
+});
+
+ipcMain.handle('file:write', async (event, filePath, content) => {
+  return fs.writeFileSync(filePath, content, 'utf8');
+});
 
 app.whenReady().then(createWindow);

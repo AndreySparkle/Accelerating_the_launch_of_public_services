@@ -1,0 +1,19 @@
+{
+  "c7": {
+    "lastName": "Петрова",
+    "firstName": "Мария",
+    "middleName": "Сергеевна", 
+    "birthDate": "1992-08-20",
+    "Sex": "Ж",
+    "Snils": "987-654-321 00",
+    "Inn": "987654321098",
+    "phone": "+79997654321",
+    "Email": "petrova@example.com",
+    "citizenship": "Российская Федерация"
+  },
+  "formData": {
+    "orderId": "ORD-002",
+    "ServiceCode": "12345",
+    "ServiceName": "Социальная выплата"
+  }
+}

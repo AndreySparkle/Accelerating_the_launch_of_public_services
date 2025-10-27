@@ -1,0 +1,19 @@
+{
+  "c7": {
+    "lastName": "Иванов",
+    "firstName": "Иван",
+    "middleName": "Иванович",
+    "birthDate": "1985-05-15",
+    "Sex": "М",
+    "Snils": "123-456-789 00",
+    "Inn": "123456789012",
+    "phone": "+79991234567",
+    "Email": "ivanov@example.com",
+    "citizenship": "Российская Федерация"
+  },
+  "formData": {
+    "orderId": "ORD-001",
+    "ServiceCode": "12345",
+    "ServiceName": "Социальная выплата"
+  }
+}
