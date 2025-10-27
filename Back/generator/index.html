@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Генератор VM-шаблонов для ЕПГУ</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Генератор VM-шаблонов для ЕПГУ</h1>
+        </header>
+        
+        <main>
+            <!-- Секции для загрузки файлов -->
+            <div class="file-section" id="jsonSection">
+                <h3>1. JSON-схема услуги (ЕПГУ)</h3>
+                <button id="loadJsonSchema">Выбрать файл</button>
+                <span class="status" id="jsonSchemaStatus">Не выбран</span>
+            </div>
+            
+            <div class="file-section" id="xsdSection">
+                <h3>2. XSD-схема вида сведений (ВИС)</h3>
+                <button id="loadXsdSchema">Выбрать файл</button>
+                <span class="status" id="xsdSchemaStatus">Не выбран</span>
+            </div>
+            
+            <div class="file-section" id="testDataSection">
+                <h3>3. Тестовые заявления (JSON)</h3>
+                <button id="loadTestData">Выбрать файлы</button>
+                <span class="status" id="testDataStatus">Не выбраны</span>
+            </div>
+            
+            <!-- Кнопка генерации -->
+            <div class="action-section">
+                <button id="generateBtn" disabled>Сгенерировать шаблон</button>
+            </div>
+            
+            <!-- Результат -->
+            <div class="result-section" id="resultSection" style="display: none;">
+                <h3>Результат:</h3>
+                <textarea id="result" readonly></textarea>
+                <div class="result-actions">
+                    <button id="saveBtn">Сохранить как .vm файл</button>
+                    <button id="copyBtn">Скопировать в буфер</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>
