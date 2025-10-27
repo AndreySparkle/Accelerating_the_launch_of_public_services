@@ -1,6 +1,6 @@
 interface ILink {
-  path: string;
-  title: string;
+  path: string
+  title: string
 }
 
 export const links: ILink[] = [
@@ -10,6 +10,6 @@ export const links: ILink[] = [
   },
   {
     path: '/create',
-    title: 'Создать',
+    title: 'Создать'
   }
 ]
