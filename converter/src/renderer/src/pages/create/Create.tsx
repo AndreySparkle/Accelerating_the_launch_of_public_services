@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import AddFile from '../../Components/ui/AddFile/AddFile'
 import RemoveButton from '../../Components/ui/RemoveButton/RemoveButton'
 import CreateButton from '../../Components/ui/CreateButton/CreateButton'
+import TemplateResult from '../../Components/ui/TemplateResult/TemplateResult'
+import { JsonSchema, FileContent, FormData, UserData } from '../../types/schema'
 
 interface FileData {
   id: string
@@ -12,6 +14,8 @@ interface FileData {
 
 const Create: React.FC = () => {
   const [files, setFiles] = useState<FileData[]>([])
+  const [generatedTemplate, setGeneratedTemplate] = useState<string>('')
+  const [isGenerating, setIsGenerating] = useState<boolean>(false)
 
   const handleFileAdd = (file: File, type: string): void => {
     const newFile: FileData = {
@@ -25,6 +29,202 @@ const Create: React.FC = () => {
 
   const removeFile = (id: string): void => {
     setFiles(prev => prev.filter(file => file.id !== id))
+  }
+
+  const readFileContent = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = e => resolve(e.target?.result as string)
+      reader.onerror = reject
+      reader.readAsText(file)
+    })
+  }
+
+  const getServiceCode = (jsonData: JsonSchema): string => {
+    if (jsonData.formData?.ServiceCode) {
+      return jsonData.formData.ServiceCode.toString().replace(/\D/g, '')
+    } else if (jsonData.ServiceCode) {
+      return jsonData.ServiceCode.toString().replace(/\D/g, '')
+    }
+    return '00000000'
+  }
+
+  const handleCreateTemplate = async (): Promise<void> => {
+    if (!hasEpguFile || !hasVisFile) {
+      alert('Необходимо добавить JSON-схему услуги ЕПГУ и XSD-схему ВИС')
+      return
+    }
+
+    setIsGenerating(true)
+    try {
+      const filesData = await Promise.all(
+        files.map(async fileData => {
+          const content = await readFileContent(fileData.file)
+          return {
+            type: fileData.type,
+            name: fileData.name,
+            content: content,
+            size: fileData.file.size
+          } as FileContent
+        })
+      )
+
+      if (window.electronAPI) {
+        const template = await window.electronAPI.generateTemplate(filesData)
+        setGeneratedTemplate(template)
+      } else {
+        const template = generateSimpleTemplate(filesData)
+        setGeneratedTemplate(template)
+      }
+    } catch (error) {
+      console.error('Ошибка генерации шаблона:', error)
+      alert('Произошла ошибка при генерации шаблона')
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  const generateSimpleTemplate = (filesData: FileContent[]): string => {
+    let jsonSchema: JsonSchema | null = null
+    const testData: JsonSchema[] = []
+
+    for (const fileData of filesData) {
+      if (fileData.type === 'JSON-схема услуги (ЕПГУ)') {
+        jsonSchema = JSON.parse(fileData.content) as JsonSchema
+      } else if (fileData.type === 'Тестовое заявление (JSON)') {
+        testData.push(JSON.parse(fileData.content) as JsonSchema)
+      }
+    }
+
+    let template = `## Velocity Template for EPGU to VIS Integration
+## Generated in browser mode
+## Test data: ${testData.length > 0 ? `${testData.length} files loaded` : 'not used'}
+<?xml version="1.0" encoding="UTF-8"?>
+<AppDataRequest xmlns="http://socit.ru/kalin/orders/2.0.0">
+  <SetRequest>
+`
+
+    if (jsonSchema?.formData) {
+      template += generateFormFields(jsonSchema.formData)
+    }
+
+    if (jsonSchema?.c7) {
+      template += generateUserData(jsonSchema.c7)
+    }
+
+    template += `  </SetRequest>
+</AppDataRequest>`
+
+    return template
+  }
+
+  const generateFormFields = (formData: FormData): string => {
+    let fields = ''
+    const fieldMappings = {
+      orderId: 'orderId',
+      ServiceCode: 'ServiceCode',
+      ServiceName: 'ServiceName'
+    }
+
+    for (const [jsonField, xmlField] of Object.entries(fieldMappings)) {
+      if (formData[jsonField]) {
+        fields += `    <${xmlField}>${formData[jsonField]}</${xmlField}>\n`
+      }
+    }
+    return fields
+  }
+
+  const generateUserData = (userData: UserData): string => {
+    let userDataBlock = `    <userData>\n`
+    const fieldMappings = {
+      lastName: 'lastName',
+      firstName: 'firstName',
+      middleName: 'middleName',
+      birthDate: 'birthDate',
+      Sex: 'Sex',
+      Snils: 'Snils',
+      Inn: 'Inn',
+      phone: 'phone',
+      Email: 'Email',
+      citizenship: 'citizenship'
+    }
+
+    for (const [jsonField, xmlField] of Object.entries(fieldMappings)) {
+      if (userData[jsonField]) {
+        userDataBlock += `      <${xmlField}>$c7.${jsonField}</${xmlField}>\n`
+      }
+    }
+    userDataBlock += `    </userData>\n`
+    return userDataBlock
+  }
+
+  const handleSaveTemplate = async (): Promise<void> => {
+    if (!generatedTemplate) return
+
+    try {
+      const epguFile = files.find(
+        file => file.type === 'JSON-схема услуги (ЕПГУ)'
+      )
+      let serviceCode = '00000000'
+
+      if (epguFile) {
+        const content = await readFileContent(epguFile.file)
+        const jsonData = JSON.parse(content) as JsonSchema
+        serviceCode = getServiceCode(jsonData)
+      }
+
+      const fileName = `${serviceCode}_Applicant.vm`
+
+      if (window.electronAPI) {
+        const result = await window.electronAPI.saveFileDialog({
+          filters: [
+            { name: 'VM Templates', extensions: ['vm'] },
+            { name: 'All Files', extensions: ['*'] }
+          ],
+          defaultPath: fileName
+        })
+
+        if (!result.canceled && result.filePaths[0]) {
+          await window.electronAPI.writeFile(
+            result.filePaths[0],
+            generatedTemplate
+          )
+          alert('Шаблон успешно сохранен!')
+        }
+      } else {
+        const blob = new Blob([generatedTemplate], { type: 'text/plain' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = fileName
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        alert('Шаблон успешно скачан!')
+      }
+    } catch (error) {
+      console.error('Ошибка сохранения:', error)
+      alert('Произошла ошибка при сохранении шаблона')
+    }
+  }
+
+  const handleCopyToClipboard = async (): Promise<void> => {
+    if (!generatedTemplate) return
+
+    try {
+      await navigator.clipboard.writeText(generatedTemplate)
+      alert('Шаблон скопирован в буфер обмена!')
+    } catch (error) {
+      console.error('Ошибка копирования:', error)
+      const textArea = document.createElement('textarea')
+      textArea.value = generatedTemplate
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      alert('Шаблон скопирован в буфер обмена!')
+    }
   }
 
   const hasEpguFile = files.some(
@@ -112,8 +312,20 @@ const Create: React.FC = () => {
               )}
             </div>
           </div>
+
+          {/* Блок результата генерации - появляется после создания шаблона */}
+          <TemplateResult
+            template={generatedTemplate}
+            onSave={handleSaveTemplate}
+            onCopy={handleCopyToClipboard}
+          />
         </div>
-        <CreateButton />
+
+        <CreateButton
+          onClick={handleCreateTemplate}
+          disabled={!hasEpguFile || !hasVisFile || isGenerating}
+          isLoading={isGenerating}
+        />
       </div>
     </main>
   )
