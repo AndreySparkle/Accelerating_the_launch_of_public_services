@@ -1,12 +1,18 @@
 import React, { useRef } from 'react'
 
 interface Props {
-  children: React.ReactNode
+  title: string
+  description: string
   onFileAdd: (file: File) => void
   accept?: string
 }
 
-const AddFile: React.FC<Props> = ({ children, onFileAdd, accept }) => {
+const AddFile: React.FC<Props> = ({
+  title,
+  onFileAdd,
+  accept,
+  description
+}) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -21,8 +27,14 @@ const AddFile: React.FC<Props> = ({ children, onFileAdd, accept }) => {
   return (
     <label
       htmlFor="addFile"
-      className={`flex items-center relative justify-center gap-2.5 bg-white py-4 w-full whitespace-nowrap rounded-xl hover:scale-105 hover:bg-blue-600 hover:text-white active:bg-blue-600 active:text-white active:scale-97 transition duration-300 cursor-pointer`}
+      className={`flex items-center relative justify-between px-16 gap-2.5 bg-white py-6 w-full whitespace-nowrap rounded-xl hover:scale-102 hover:bg-blue-600 hover:text-white active:bg-blue-600 active:text-white active:scale-97 transition duration-300 cursor-pointer`}
     >
+      <div className={'flex flex-col gap-y-3'}>
+        <span className={'font-lato text-32 leading-6'}>{title}</span>
+        <span className={'font-lato leading-3.5 opacity-70'}>
+          {description}
+        </span>
+      </div>
       <svg
         width="44"
         height="44"
@@ -35,7 +47,6 @@ const AddFile: React.FC<Props> = ({ children, onFileAdd, accept }) => {
           fill="currentColor"
         />
       </svg>
-      <span className={'font-lato text-32'}>{children}</span>
       <input
         ref={fileInputRef}
         type="file"
