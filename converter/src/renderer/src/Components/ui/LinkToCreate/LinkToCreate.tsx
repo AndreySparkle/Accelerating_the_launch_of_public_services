@@ -1,16 +1,16 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
+import { links } from '../../../config/link.config'
 
 interface Props {
   text: string
-  onClick?: () => void
   className?: string
 }
 
-const Button: React.FC<Props> = ({ text, className, onClick }) => {
+const LinkToCreate: React.FC<Props> = ({ text, className }) => {
   return (
-    <button
-      onClick={onClick}
-      type="button"
+    <Link
+      to={links[1].path}
       className={`flex items-center justify-center gap-2.5 bg-white py-4 w-full whitespace-nowrap rounded-xl hover:scale-105 hover:bg-blue-600 hover:text-white active:bg-blue-600 active:text-white active:scale-97 transition duration-300 ${className}`}
     >
       <svg
@@ -26,8 +26,8 @@ const Button: React.FC<Props> = ({ text, className, onClick }) => {
         />
       </svg>
       <span className={'font-lato text-32'}>{text}</span>
-    </button>
+    </Link>
   )
 }
 
-export default Button
+export default LinkToCreate
