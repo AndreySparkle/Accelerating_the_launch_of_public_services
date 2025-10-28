@@ -105,7 +105,9 @@ async function loadTestData() {
                 testData.push(JSON.parse(content));
             }
             
-            document.getElementById('testDataStatus').textContent = `✓ Загружено файлов: ${testData.length}`;
+            document.getElementById('testDataStatus').textContent = testData.length > 0 
+            ? `✓ Загружено файлов: ${testData.length}` 
+            : '✓ Опционально (не обязательно)';
             document.getElementById('testDataStatus').className = 'status ready';
             checkReadyState();
             
@@ -117,11 +119,15 @@ async function loadTestData() {
     }
 }
 
-// Проверка готовности
+//тестовые данные опциональны
 function checkReadyState() {
-    const isReady = jsonSchema && xsdSchema && testData.length > 0;
+    const isReady = jsonSchema && xsdSchema; 
     document.getElementById('generateBtn').disabled = !isReady;
-    console.log('Готовность к генерации:', isReady, { jsonSchema: !!jsonSchema, xsdSchema: !!xsdSchema, testData: testData.length });
+    console.log('Готовность к генерации:', isReady, { 
+        jsonSchema: !!jsonSchema, 
+        xsdSchema: !!xsdSchema, 
+        testData: testData.length 
+    });
 }
 
 // Генерация шаблона
@@ -145,14 +151,15 @@ async function generateTemplate() {
     }
 }
 
-// Основная функция генерации VM-шаблона
+//Генерация VM-Шаблона
 function generateVMTemplate(jsonSchema, xsdSchema, testData) {
     console.log('Генерация VM шаблона...');
     console.log('JSON Schema:', jsonSchema);
-    console.log('Test data count:', testData.length);
+    console.log('Test data count:', testData.length); // Может быть 0
     
     let template = `## Velocity Template for EPGU to VIS Integration
 ## Generated automatically
+## Test data: ${testData.length > 0 ? `${testData.length} files loaded` : 'not used'}
 <?xml version="1.0" encoding="UTF-8"?>
 <AppDataRequest xmlns="http://socit.ru/kalin/orders/2.0.0">
   <SetRequest>
@@ -218,21 +225,32 @@ function generateUserData(userData) {
     return userDataBlock;
 }
 
-// Сохранение шаблона
+// Сохранение шаблона 
 async function saveTemplate() {
     try {
         const content = document.getElementById('result').value;
         
-        // Получаем код услуги из JSON схемы
-        let serviceCode = '00000000'; // код по умолчанию
+        // Получаем код услуги из JSON схемы (тестовые данные опциональны)
+        let serviceCode = '00000000';
         
+        // 1. Ищем в основной JSON схеме
         if (jsonSchema && jsonSchema.formData && jsonSchema.formData.ServiceCode) {
             serviceCode = jsonSchema.formData.ServiceCode;
-        } else if (testData.length > 0 && testData[0].formData && testData[0].formData.ServiceCode) {
+        }
+        // 2. Ищем в тестовых данных (если есть)
+        else if (testData.length > 0 && testData[0].formData && testData[0].formData.ServiceCode) {
             serviceCode = testData[0].formData.ServiceCode;
         }
+        // 3. Ищем в корне JSON схемы
+        else if (jsonSchema && jsonSchema.ServiceCode) {
+            serviceCode = jsonSchema.ServiceCode;
+        }
         
-        // Формируем имя файла по шаблону
+        // Очищаем код от лишних символов
+        serviceCode = serviceCode.toString().replace(/\D/g, '');
+        if (!serviceCode) serviceCode = '00000000';
+        
+        // Формируем имя файла
         const fileName = `${serviceCode}_Applicant.vm`;
         
         const result = await ipcRenderer.invoke('dialog:saveFile', {
@@ -240,7 +258,7 @@ async function saveTemplate() {
                 { name: 'VM Templates', extensions: ['vm'] },
                 { name: 'All Files', extensions: ['*'] }
             ],
-            defaultPath: fileName 
+            defaultPath: fileName
         });
         
         if (!result.canceled) {

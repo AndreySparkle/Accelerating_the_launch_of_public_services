@@ -224,6 +224,16 @@
             font-style: italic;
         }
 
+        .optional-badge {
+            background: #f39c12;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+            font-weight: 500;
+        }
+
         /* Адаптивность */
         @media (max-width: 768px) {
             body {
@@ -259,6 +269,38 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Стили для уведомлений */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification.success {
+            background: #27ae60;
+        }
+
+        .notification.error {
+            background: #e74c3c;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -284,10 +326,10 @@
             </div>
             
             <div class="file-section" id="testDataSection">
-                <h3>Тестовые заявления (JSON)</h3>
+                <h3>Тестовые заявления (JSON) <span class="optional-badge">ОПЦИОНАЛЬНО</span></h3>
                 <button id="loadTestData">Выбрать файлы JSON</button>
-                <span class="status" id="testDataStatus">Файлы не выбраны</span>
-                <div class="file-info">Примеры заполненных форм (можно выбрать несколько)</div>
+                <span class="status" id="testDataStatus">Файлы не выбраны (не обязательно)</span>
+                <div class="file-info">Примеры заполненных форм для тестирования (можно пропустить)</div>
             </div>
             
             <div class="action-section">
@@ -306,6 +348,30 @@
             </div>
         </main>
     </div>
+
+    <script>
+        // Базовые функции для уведомлений (полная логика в renderer.js)
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
+            }, 4000);
+        }
+
+        function showSuccess(message) {
+            showNotification(message, 'success');
+        }
+
+        function showError(message) {
+            showNotification(message, 'error');
+        }
+    </script>
 
     <script src="renderer.js"></script>
 </body>
