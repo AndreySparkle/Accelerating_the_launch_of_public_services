@@ -15,7 +15,7 @@ const CreateButton: React.FC<Props> = ({
     <button
       onClick={onClick}
       disabled={disabled || isLoading}
-      className={`flex items-center justify-center gap-2.5 py-4 w-full whitespace-nowrap rounded-xl hover:scale-105 bg-blue-600 text-white active:scale-97 transition duration-300 ${
+      className={`flex items-center justify-center gap-2.5 py-4 w-full whitespace-nowrap bg-blue-600 text-white rounded-xl hover:scale-105 hover:bg-white hover:text-blue-700 active:bg-white active:text-blue-700 active:scale-97 transition duration-300 ${
         disabled || isLoading ? 'opacity-50 cursor-not-allowed' : ''
       }`}
     >

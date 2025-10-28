@@ -16,13 +16,13 @@ const TemplateResult: React.FC<Props> = ({ template, onSave, onCopy }) => {
         <div className="flex gap-4">
           <button
             onClick={onCopy}
-            className="px-6 py-3 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition duration-300 font-lato"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-white hover:text-blue-700 hover:scale-105 active:bg-white active:text-blue-700 active:scale-97 transition duration-300 font-lato"
           >
             Копировать в буфер
           </button>
           <button
             onClick={onSave}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300 font-lato"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-white hover:text-blue-700 hover:scale-105 active:bg-white active:text-blue-700 active:scale-97 transition duration-300 font-lato"
           >
             Сохранить в файл
           </button>

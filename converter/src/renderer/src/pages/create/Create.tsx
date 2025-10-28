@@ -3,6 +3,7 @@ import AddFile from '../../Components/ui/AddFile/AddFile'
 import RemoveButton from '../../Components/ui/RemoveButton/RemoveButton'
 import CreateButton from '../../Components/ui/CreateButton/CreateButton'
 import TemplateResult from '../../Components/ui/TemplateResult/TemplateResult'
+import Toast from '../../Components/ui/Toast/Toast'
 import { JsonSchema, FileContent, FormData, UserData } from '../../types/schema'
 
 interface FileData {
@@ -12,10 +13,29 @@ interface FileData {
   file: File
 }
 
+interface ToastState {
+  id: string
+  message: string
+  type: 'success' | 'error'
+}
+
 const Create: React.FC = () => {
   const [files, setFiles] = useState<FileData[]>([])
   const [generatedTemplate, setGeneratedTemplate] = useState<string>('')
   const [isGenerating, setIsGenerating] = useState<boolean>(false)
+  const [toasts, setToasts] = useState<ToastState[]>([])
+
+  const showToast = (
+    message: string,
+    type: 'success' | 'error' = 'success'
+  ) => {
+    const id = Math.random().toString(36).substr(2, 9)
+    setToasts(prev => [...prev, { id, message, type }])
+  }
+
+  const hideToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id))
+  }
 
   const handleFileAdd = (file: File, type: string): void => {
     const newFile: FileData = {
@@ -51,7 +71,10 @@ const Create: React.FC = () => {
 
   const handleCreateTemplate = async (): Promise<void> => {
     if (!hasEpguFile || !hasVisFile) {
-      alert('Необходимо добавить JSON-схему услуги ЕПГУ и XSD-схему ВИС')
+      showToast(
+        'Необходимо добавить JSON-схему услуги ЕПГУ и XSD-схему ВИС',
+        'error'
+      )
       return
     }
 
@@ -69,16 +92,19 @@ const Create: React.FC = () => {
         })
       )
 
+      let template: string
       if (window.electronAPI) {
-        const template = await window.electronAPI.generateTemplate(filesData)
-        setGeneratedTemplate(template)
+        template = await window.electronAPI.generateTemplate(filesData)
       } else {
-        const template = generateSimpleTemplate(filesData)
-        setGeneratedTemplate(template)
+        template = generateSimpleTemplate(filesData)
       }
+
+      setGeneratedTemplate(template)
+
+      await handleSaveTemplate(template)
     } catch (error) {
       console.error('Ошибка генерации шаблона:', error)
-      alert('Произошла ошибка при генерации шаблона')
+      showToast('Произошла ошибка при генерации шаблона', 'error')
     } finally {
       setIsGenerating(false)
     }
@@ -158,8 +184,9 @@ const Create: React.FC = () => {
     return userDataBlock
   }
 
-  const handleSaveTemplate = async (): Promise<void> => {
-    if (!generatedTemplate) return
+  const handleSaveTemplate = async (template?: string): Promise<boolean> => {
+    const content = template || generatedTemplate
+    if (!content) return false
 
     try {
       const epguFile = files.find(
@@ -168,8 +195,8 @@ const Create: React.FC = () => {
       let serviceCode = '00000000'
 
       if (epguFile) {
-        const content = await readFileContent(epguFile.file)
-        const jsonData = JSON.parse(content) as JsonSchema
+        const fileContent = await readFileContent(epguFile.file)
+        const jsonData = JSON.parse(fileContent) as JsonSchema
         serviceCode = getServiceCode(jsonData)
       }
 
@@ -185,14 +212,12 @@ const Create: React.FC = () => {
         })
 
         if (!result.canceled && result.filePaths[0]) {
-          await window.electronAPI.writeFile(
-            result.filePaths[0],
-            generatedTemplate
-          )
-          alert('Шаблон успешно сохранен!')
+          await window.electronAPI.writeFile(result.filePaths[0], content)
+          return true
         }
+        return false
       } else {
-        const blob = new Blob([generatedTemplate], { type: 'text/plain' })
+        const blob = new Blob([content], { type: 'text/plain' })
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
@@ -201,11 +226,12 @@ const Create: React.FC = () => {
         a.click()
         document.body.removeChild(a)
         URL.revokeObjectURL(url)
-        alert('Шаблон успешно скачан!')
+        return true
       }
     } catch (error) {
       console.error('Ошибка сохранения:', error)
-      alert('Произошла ошибка при сохранении шаблона')
+      showToast('Произошла ошибка при сохранении шаблона', 'error')
+      return false
     }
   }
 
@@ -214,7 +240,7 @@ const Create: React.FC = () => {
 
     try {
       await navigator.clipboard.writeText(generatedTemplate)
-      alert('Шаблон скопирован в буфер обмена!')
+      showToast('Текст скопирован в буфер обмена!')
     } catch (error) {
       console.error('Ошибка копирования:', error)
       const textArea = document.createElement('textarea')
@@ -223,7 +249,7 @@ const Create: React.FC = () => {
       textArea.select()
       document.execCommand('copy')
       document.body.removeChild(textArea)
-      alert('Шаблон скопирован в буфер обмена!')
+      showToast('Текст скопирован в буфер обмена!')
     }
   }
 
@@ -313,10 +339,9 @@ const Create: React.FC = () => {
             </div>
           </div>
 
-          {/* Блок результата генерации - появляется после создания шаблона */}
           <TemplateResult
             template={generatedTemplate}
-            onSave={handleSaveTemplate}
+            onSave={() => handleSaveTemplate()}
             onCopy={handleCopyToClipboard}
           />
         </div>
@@ -326,6 +351,15 @@ const Create: React.FC = () => {
           disabled={!hasEpguFile || !hasVisFile || isGenerating}
           isLoading={isGenerating}
         />
+
+        {toasts.map(toast => (
+          <Toast
+            key={toast.id}
+            message={toast.message}
+            type={toast.type}
+            onClose={() => hideToast(toast.id)}
+          />
+        ))}
       </div>
     </main>
   )
