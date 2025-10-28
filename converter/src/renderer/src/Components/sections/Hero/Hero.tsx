@@ -2,7 +2,7 @@ import React from 'react'
 import { helperButtons } from './hero.data'
 import HelperButton from '../../ui/HelperButton/HelperButton'
 import greeting from '../../../assets/images/Greeting.svg'
-import Button from '../../ui/Button/Button'
+import LinkToCreate from '../../ui/LinkToCreate/LinkToCreate'
 
 const Hero: React.FC = () => {
   return (
@@ -32,7 +32,7 @@ const Hero: React.FC = () => {
           height="160"
           className="absolute xl:-left-55 -top-16 right-0 transition"
         />
-        <Button className={''} text={'Создать новый шаблон'} />
+        <LinkToCreate className={''} text={'Создать новый шаблон'} />
       </div>
     </section>
   )
