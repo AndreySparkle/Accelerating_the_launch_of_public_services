@@ -462,7 +462,7 @@ const Create: React.FC = () => {
             </AddFile>
           </div>
 
-          <div className="flex flex-col w-full gap-y-4">
+          <div className="flex flex-col w-full gap-y-12">
             <span className={'text-5xl font-bold'}>
               Добавленные тестовые заявления
             </span>

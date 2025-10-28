@@ -26,10 +26,6 @@ body,
   border: none;
 }
 
-:where(ul[class]) {
-  list-style: none;
-}
-
 :where(address[class]) {
   font-style: normal;
 }

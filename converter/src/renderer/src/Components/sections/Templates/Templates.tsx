@@ -4,7 +4,7 @@ import Template from '../../ui/Template/Template'
 
 const Templates: React.FC = () => {
   return (
-    <section className={'flex flex-col gap-y-12 pt-16'}>
+    <section className={'flex flex-col gap-y-12 py-16'}>
       <span className={'text-40 font-bold font-lato'}>Созданные шаблоны</span>
       <ul className={'flex flex-col gap-y-4'}>
         {templatesHistory.map((template, index) => (

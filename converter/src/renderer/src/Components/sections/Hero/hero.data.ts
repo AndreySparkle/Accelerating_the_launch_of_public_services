@@ -1,11 +1,13 @@
 interface IHelperButton {
   title: string
   href?: string
+  onClick?: () => void
 }
 
 export const helperButtons: IHelperButton[] = [
   {
-    title: 'Как создать новый шаблон?'
+    title: 'Как создать новый шаблон?',
+    onClick: () => {}
   },
   {
     title: 'Моя профессия ит',
