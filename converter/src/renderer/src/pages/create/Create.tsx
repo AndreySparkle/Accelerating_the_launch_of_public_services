@@ -1,5 +1,9 @@
 import React, { useState } from 'react'
+import jsonGreen from '../../assets/icons/JSON.svg'
+import jsonPurple from '../../assets/icons/JSONpurple.svg'
+import xsd from '../../assets/icons/XSD.svg'
 import AddFile from '../../Components/ui/AddFile/AddFile'
+import SelectedFile from '../../Components/ui/SelectedFile/SelectedFile'
 import RemoveButton from '../../Components/ui/RemoveButton/RemoveButton'
 import CreateButton from '../../Components/ui/CreateButton/CreateButton'
 import TemplateResult from '../../Components/ui/TemplateResult/TemplateResult'
@@ -28,27 +32,72 @@ const Create: React.FC = () => {
   const showToast = (
     message: string,
     type: 'success' | 'error' = 'success'
-  ) => {
+  ): void => {
     const id = Math.random().toString(36).substr(2, 9)
     setToasts(prev => [...prev, { id, message, type }])
   }
 
-  const hideToast = (id: string) => {
+  const hideToast = (id: string): void => {
     setToasts(prev => prev.filter(toast => toast.id !== id))
   }
 
   const handleFileAdd = (file: File, type: string): void => {
-    const newFile: FileData = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: file.name,
-      type: type,
-      file: file
+    if (
+      type === 'JSON-схема услуги (ЕПГУ)' ||
+      type === 'XSD-схема вида сведений (ВИС)'
+    ) {
+      setFiles(prev =>
+        prev
+          .filter(f => f.type !== type)
+          .concat({
+            id: Math.random().toString(36).substr(2, 9),
+            name: file.name,
+            type: type,
+            file: file
+          })
+      )
+    } else {
+      const newFile: FileData = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: file.name,
+        type: type,
+        file: file
+      }
+      setFiles(prev => [...prev, newFile])
     }
-    setFiles(prev => [...prev, newFile])
   }
 
   const removeFile = (id: string): void => {
     setFiles(prev => prev.filter(file => file.id !== id))
+  }
+
+  const removeFileByType = (type: string): void => {
+    setFiles(prev => prev.filter(file => file.type !== type))
+  }
+
+  const updateFileByType = (file: File, type: string): void => {
+    setFiles(prev =>
+      prev
+        .filter(f => f.type !== type)
+        .concat({
+          id: Math.random().toString(36).substr(2, 9),
+          name: file.name,
+          type: type,
+          file: file
+        })
+    )
+  }
+
+  const getEpguFile = (): FileData | undefined => {
+    return files.find(file => file.type === 'JSON-схема услуги (ЕПГУ)')
+  }
+
+  const getVisFile = (): FileData | undefined => {
+    return files.find(file => file.type === 'XSD-схема вида сведений (ВИС)')
+  }
+
+  const getApplicationFiles = (): FileData[] => {
+    return files.filter(file => file.type === 'Тестовое заявление (JSON)')
   }
 
   const readFileContent = (file: File): Promise<string> => {
@@ -112,20 +161,14 @@ const Create: React.FC = () => {
 
   const generateSimpleTemplate = (filesData: FileContent[]): string => {
     let jsonSchema: JsonSchema | null = null
-    const testData: JsonSchema[] = []
 
     for (const fileData of filesData) {
       if (fileData.type === 'JSON-схема услуги (ЕПГУ)') {
         jsonSchema = JSON.parse(fileData.content) as JsonSchema
-      } else if (fileData.type === 'Тестовое заявление (JSON)') {
-        testData.push(JSON.parse(fileData.content) as JsonSchema)
       }
     }
 
-    let template = `## Velocity Template for EPGU to VIS Integration
-## Generated in browser mode
-## Test data: ${testData.length > 0 ? `${testData.length} files loaded` : 'not used'}
-<?xml version="1.0" encoding="UTF-8"?>
+    let template = `<?xml version="1.0" encoding="UTF-8"?>
 <AppDataRequest xmlns="http://socit.ru/kalin/orders/2.0.0">
   <SetRequest>
 `
@@ -263,6 +306,15 @@ const Create: React.FC = () => {
     file => file.type === 'Тестовое заявление (JSON)'
   )
 
+  const epguFile = getEpguFile()
+  const visFile = getVisFile()
+  const applicationFiles = getApplicationFiles()
+  const applicationFilesCount = applicationFiles.length
+  const applicationFilesTotalSize = applicationFiles.reduce(
+    (total, file) => total + file.file.size,
+    0
+  )
+
   return (
     <main
       className={
@@ -271,33 +323,120 @@ const Create: React.FC = () => {
     >
       <div className="container px-6 flex flex-col w-full justify-between gap-y-12">
         <div className={'flex flex-col gap-12 mx-auto items-start w-full'}>
-          <span className={'text-5xl font-bold'}>Добавить файлы</span>
+          <div className={'flex justify-between w-full'}>
+            <span className={'text-5xl font-bold'}>Добавить файлы</span>
+            <span
+              className={
+                'py-4.5 px-16 bg-red-400 text-2xl leading-4 block rounded-xl text-center text-white'
+              }
+            >
+              Обязательно
+            </span>
+          </div>
           <div className={'flex flex-col w-full gap-y-4'}>
-            <AddFile
-              onFileAdd={file =>
-                handleFileAdd(file, 'JSON-схема услуги (ЕПГУ)')
-              }
-              accept=".json,application/json"
-              title={'Добавить схему услуги ЕПГУ'}
-              description={'Описание полей формы с портала Госуслуг'}
-              isCompleted={hasEpguFile}
-              allowMultiple={false}
-            />
-            <AddFile
-              onFileAdd={file =>
-                handleFileAdd(file, 'XSD-схема вида сведений (ВИС)')
-              }
-              accept=".xsd,application/xml"
-              title={'Добавить схему вида сведений ВИС'}
-              description={
-                'Структура данных, которую ожидает внутренняя система'
-              }
-              isCompleted={hasVisFile}
-              allowMultiple={false}
-            />
+            {epguFile ? (
+              <SelectedFile
+                title="Схема услуги ЕПГУ"
+                icon={
+                  <img
+                    src={jsonGreen}
+                    alt=""
+                    aria-hidden={true}
+                    width="140"
+                    height="49"
+                    loading="lazy"
+                  />
+                }
+                fileName={epguFile.name}
+                fileSize={(epguFile.file.size / 1024 / 1024).toFixed(2)}
+                onFileChange={file =>
+                  updateFileByType(file, 'JSON-схема услуги (ЕПГУ)')
+                }
+                onRemove={() => removeFileByType('JSON-схема услуги (ЕПГУ)')}
+                accept=".json,application/json"
+              />
+            ) : (
+              <AddFile
+                onFileAdd={file =>
+                  handleFileAdd(file, 'JSON-схема услуги (ЕПГУ)')
+                }
+                accept=".json,application/json"
+                title={'Добавить схему услуги ЕПГУ'}
+                description={'Описание полей формы с портала Госуслуг'}
+                isCompleted={hasEpguFile}
+                allowMultiple={false}
+              >
+                <img
+                  src={jsonGreen}
+                  alt=""
+                  aria-hidden={true}
+                  width="140"
+                  height="49"
+                  loading="lazy"
+                />
+              </AddFile>
+            )}
+
+            {visFile ? (
+              <SelectedFile
+                title="Схема вида сведений ВИС"
+                icon={
+                  <img
+                    src={xsd}
+                    alt=""
+                    aria-hidden={true}
+                    width="140"
+                    height="49"
+                    loading="lazy"
+                  />
+                }
+                fileName={visFile.name}
+                fileSize={(visFile.file.size / 1024 / 1024).toFixed(2)}
+                onFileChange={file =>
+                  updateFileByType(file, 'XSD-схема вида сведений (ВИС)')
+                }
+                onRemove={() =>
+                  removeFileByType('XSD-схема вида сведений (ВИС)')
+                }
+                accept=".xsd,application/xml"
+              />
+            ) : (
+              <AddFile
+                onFileAdd={file =>
+                  handleFileAdd(file, 'XSD-схема вида сведений (ВИС)')
+                }
+                accept=".xsd,application/xml"
+                title={'Добавить схему вида сведений ВИС'}
+                description={
+                  'Структура данных, которую ожидает внутренняя система'
+                }
+                isCompleted={hasVisFile}
+                allowMultiple={false}
+              >
+                <img
+                  src={xsd}
+                  alt=""
+                  aria-hidden={true}
+                  width="140"
+                  height="49"
+                  loading="lazy"
+                />
+              </AddFile>
+            )}
           </div>
 
-          <span className={'text-5xl font-bold'}>Ваше заявление</span>
+          <div className={'flex justify-between w-full'}>
+            <span className={'text-5xl font-bold'}>
+              Добавить тестовые заявления
+            </span>
+            <span
+              className={
+                'py-4.5 px-16 bg-red-400 text-2xl leading-4 block rounded-xl text-center text-white bg-yellow-200'
+              }
+            >
+              Опционально
+            </span>
+          </div>
 
           <div className={'flex flex-col w-full gap-y-4'}>
             <AddFile
@@ -309,14 +448,27 @@ const Create: React.FC = () => {
               description={'Примеры заполненных форм (можно выбрать несколько)'}
               isCompleted={hasApplicationFile}
               allowMultiple={true}
-            />
+              fileCount={applicationFilesCount}
+              totalSize={(applicationFilesTotalSize / 1024 / 1024).toFixed(2)}
+            >
+              <img
+                src={jsonPurple}
+                alt=""
+                aria-hidden={true}
+                width="140"
+                height="49"
+                loading="lazy"
+              />
+            </AddFile>
           </div>
 
           <div className="flex flex-col w-full gap-y-4">
-            <span className={'text-40 font-bold'}>Добавленные файлы</span>
+            <span className={'text-5xl font-bold'}>
+              Добавленные тестовые заявления
+            </span>
             <div className="flex flex-col gap-3">
-              {files.length > 0 ? (
-                files.map(file => (
+              {applicationFiles.length > 0 ? (
+                applicationFiles.map(file => (
                   <div
                     key={file.id}
                     className="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200"
@@ -334,7 +486,13 @@ const Create: React.FC = () => {
                   </div>
                 ))
               ) : (
-                <span>Файлы отсутствуют</span>
+                <span
+                  className={
+                    'text-32 leading-6 text-gray-400 py-9 bg-white rounded-xl w-full text-center'
+                  }
+                >
+                  Пусто
+                </span>
               )}
             </div>
           </div>
@@ -350,6 +508,7 @@ const Create: React.FC = () => {
           onClick={handleCreateTemplate}
           disabled={!hasEpguFile || !hasVisFile || isGenerating}
           isLoading={isGenerating}
+          isGenerated={!!generatedTemplate}
         />
 
         {toasts.map(toast => (

@@ -3,6 +3,7 @@
 @import 'tailwindcss';
 
 @theme {
+  --color-blue-200: #457fff;
   --color-blue-300: #548cf6;
   --color-blue-400: #325de9;
   --color-blue-550: #1758e3;
@@ -11,6 +12,9 @@
   --color-gray-50: #edf2fe;
   --color-gray-400: #66727f;
   --color-file-green-100: #1d9e88;
+  --color-red-400: #fc6554;
+  --color-yellow-200: #f0bf41;
+  --color-gray-900: #1e1e1e;
   --font-lato: 'Lato', 'sans-serif';
   --font-alsekibastuz: 'ALSEkibastuz', 'sans-serif';
   --rounded-20: 1.25rem;

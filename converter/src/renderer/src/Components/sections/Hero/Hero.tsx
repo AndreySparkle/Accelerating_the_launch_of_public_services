@@ -20,7 +20,7 @@ const Hero: React.FC = () => {
           <ul className={'flex gap-x-4.5'}>
             {helperButtons.map((button, index) => (
               <li key={`hero-button-${index}`}>
-                <HelperButton>{button.title}</HelperButton>
+                <HelperButton href={button.href}>{button.title}</HelperButton>
               </li>
             ))}
           </ul>

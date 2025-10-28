@@ -1,5 +1,6 @@
 interface IHelperButton {
   title: string
+  href?: string
 }
 
 export const helperButtons: IHelperButton[] = [
@@ -7,9 +8,11 @@ export const helperButtons: IHelperButton[] = [
     title: 'Как создать новый шаблон?'
   },
   {
-    title: 'Vk.pay'
+    title: 'Моя профессия ит',
+    href: 'https://t.me/+3b3c3KfROrs3ZWIy'
   },
   {
-    title: 'Помощь'
+    title: 'Помощь',
+    href: 'https://t.me/Andrey_shot'
   }
 ]

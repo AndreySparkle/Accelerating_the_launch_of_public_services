@@ -4,19 +4,23 @@ interface Props {
   onClick: () => void
   disabled?: boolean
   isLoading?: boolean
+  isGenerated?: boolean
 }
 
 const CreateButton: React.FC<Props> = ({
   onClick,
   disabled = false,
-  isLoading = false
+  isLoading = false,
+  isGenerated = false
 }) => {
   return (
     <button
       onClick={onClick}
       disabled={disabled || isLoading}
-      className={`flex items-center justify-center gap-2.5 py-4 w-full whitespace-nowrap bg-blue-600 text-white rounded-xl hover:scale-105 hover:bg-white hover:text-blue-700 active:bg-white active:text-blue-700 active:scale-97 transition duration-300 ${
-        disabled || isLoading ? 'opacity-50 cursor-not-allowed' : ''
+      className={`flex items-center justify-center gap-2.5 py-4 w-full whitespace-nowrap text-white rounded-xl transition duration-300 ${
+        disabled || isLoading
+          ? 'bg-blue-200 !cursor-not-allowed'
+          : 'bg-blue-600 hover:scale-105 hover:bg-white hover:text-blue-700 active:bg-white active:text-blue-700 active:scale-97'
       }`}
     >
       {isLoading ? (
@@ -57,7 +61,9 @@ const CreateButton: React.FC<Props> = ({
               fill="currentColor"
             />
           </svg>
-          <span className={'font-lato text-32'}>Создать VM шаблон</span>
+          <span className={'font-lato text-32'}>
+            {isGenerated ? 'Перегенерировать' : 'Создать VM шаблон'}
+          </span>
         </>
       )}
     </button>

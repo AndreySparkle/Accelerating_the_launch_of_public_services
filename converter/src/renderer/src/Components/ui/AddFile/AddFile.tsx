@@ -2,20 +2,26 @@ import React, { useRef, useId } from 'react'
 
 interface Props {
   title: string
+  children: React.ReactNode
   description: string
   onFileAdd: (file: File) => void
   accept?: string
   isCompleted?: boolean
   allowMultiple?: boolean
+  fileCount?: number
+  totalSize?: string
 }
 
 const AddFile: React.FC<Props> = ({
+  children,
   title,
   onFileAdd,
   accept,
   description,
   isCompleted = false,
-  allowMultiple = false
+  allowMultiple = false,
+  fileCount = 0,
+  totalSize = '0'
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const inputId = useId()
@@ -47,27 +53,26 @@ const AddFile: React.FC<Props> = ({
           : 'cursor-pointer hover:scale-102 hover:bg-blue-600 hover:text-white active:bg-blue-600 active:text-white active:scale-97'
       }`}
     >
-      <div className={'flex flex-col gap-y-3'}>
-        <span className={'font-lato text-32 leading-6'}>{title}</span>
-        <span className={'font-lato leading-3.5 opacity-70'}>
-          {description}
-        </span>
+      <div className={'flex gap-x-2.5'}>
+        {children}
+        <div className={'flex flex-col gap-y-3'}>
+          <span className={'font-lato text-32 leading-6'}>
+            {fileCount > 0
+              ? `Количество добавленных файлов: ${fileCount}`
+              : title}
+          </span>
+          <span className={'font-lato leading-3.5 opacity-70 text-xl'}>
+            {description}
+          </span>
+        </div>
       </div>
 
-      {isDisabled ? (
-        <svg
-          width="44"
-          height="44"
-          viewBox="0 0 44 44"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M17.0431 31L8 22.0772L9.29914 20.7971L17.0431 28.4381L33.7027 12L35 13.2819L17.0431 31Z"
-            fill="#0B1F33"
-          />
-        </svg>
-      ) : (
+      <div className="flex items-center gap-4">
+        {fileCount > 0 && (
+          <span className="font-lato text-sm text-gray-500 whitespace-nowrap">
+            {totalSize} MB
+          </span>
+        )}
         <svg
           width="44"
           height="44"
@@ -80,7 +85,7 @@ const AddFile: React.FC<Props> = ({
             fill="currentColor"
           />
         </svg>
-      )}
+      </div>
 
       <input
         ref={fileInputRef}
