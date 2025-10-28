@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import AddFile from '../../Components/ui/AddFile/AddFile'
 import RemoveButton from '../../Components/ui/RemoveButton/RemoveButton'
+import CreateButton from '../../Components/ui/CreateButton/CreateButton'
 
 interface FileData {
   id: string
@@ -26,11 +27,23 @@ const Create: React.FC = () => {
     setFiles(prev => prev.filter(file => file.id !== id))
   }
 
+  const hasEpguFile = files.some(
+    file => file.type === 'JSON-схема услуги (ЕПГУ)'
+  )
+  const hasVisFile = files.some(
+    file => file.type === 'XSD-схема вида сведений (ВИС)'
+  )
+  const hasApplicationFile = files.some(
+    file => file.type === 'Тестовое заявление (JSON)'
+  )
+
   return (
     <main
-      className={'bg-gray-50 min-h-screen py-8 pt-16 text-blue-700 font-lato'}
+      className={
+        'bg-gray-50 min-h-screen py-16 text-blue-700 font-lato flex justify-center'
+      }
     >
-      <div className="container px-6 mx-auto flex flex-col w-full">
+      <div className="container px-6 flex flex-col w-full justify-between gap-y-12">
         <div className={'flex flex-col gap-12 mx-auto items-start w-full'}>
           <span className={'text-5xl font-bold'}>Добавить файлы</span>
           <div className={'flex flex-col w-full gap-y-4'}>
@@ -41,6 +54,8 @@ const Create: React.FC = () => {
               accept=".json,application/json"
               title={'Добавить схему услуги ЕПГУ'}
               description={'Описание полей формы с портала Госуслуг'}
+              isCompleted={hasEpguFile}
+              allowMultiple={false}
             />
             <AddFile
               onFileAdd={file =>
@@ -51,6 +66,8 @@ const Create: React.FC = () => {
               description={
                 'Структура данных, которую ожидает внутренняя система'
               }
+              isCompleted={hasVisFile}
+              allowMultiple={false}
             />
           </div>
 
@@ -64,6 +81,8 @@ const Create: React.FC = () => {
               accept=".json,application/json"
               title={'Добавить заявление'}
               description={'Примеры заполненных форм (можно выбрать несколько)'}
+              isCompleted={hasApplicationFile}
+              allowMultiple={true}
             />
           </div>
 
@@ -80,7 +99,12 @@ const Create: React.FC = () => {
                       <p className="font-lato text-lg">{file.name}</p>
                       <p className="text-sm text-gray-500">{file.type}</p>
                     </div>
-                    <RemoveButton onClick={() => removeFile(file.id)} />
+                    <div className="flex items-center gap-4">
+                      <span className="font-lato text-sm text-gray-500">
+                        {(file.file.size / 1024 / 1024).toFixed(2)} MB
+                      </span>
+                      <RemoveButton onClick={() => removeFile(file.id)} />
+                    </div>
                   </div>
                 ))
               ) : (
@@ -89,6 +113,7 @@ const Create: React.FC = () => {
             </div>
           </div>
         </div>
+        <CreateButton />
       </div>
     </main>
   )
