@@ -106,8 +106,8 @@ async function loadTestData() {
             }
             
             document.getElementById('testDataStatus').textContent = testData.length > 0 
-            ? `✓ Загружено файлов: ${testData.length}` 
-            : '✓ Опционально (не обязательно)';
+                ? `✓ Загружено файлов: ${testData.length}` 
+                : '✓ Опционально (не обязательно)';
             document.getElementById('testDataStatus').className = 'status ready';
             checkReadyState();
             
@@ -119,9 +119,9 @@ async function loadTestData() {
     }
 }
 
-//тестовые данные опциональны
+// Проверка готовности (тестовые данные опциональны)
 function checkReadyState() {
-    const isReady = jsonSchema && xsdSchema; 
+    const isReady = jsonSchema && xsdSchema; // testData больше не обязательны
     document.getElementById('generateBtn').disabled = !isReady;
     console.log('Готовность к генерации:', isReady, { 
         jsonSchema: !!jsonSchema, 
@@ -138,10 +138,12 @@ async function generateTemplate() {
         
         const vmTemplate = generateVMTemplate(jsonSchema, xsdSchema, testData);
         
+        // Показываем результат
         document.getElementById('result').value = vmTemplate;
         document.getElementById('resultSection').style.display = 'block';
         
-        showSuccess('Шаблон успешно сгенерирован!');
+        // АВТОМАТИЧЕСКОЕ КОПИРОВАНИЕ В БУФЕР
+        await copyToClipboardAuto();
         
     } catch (error) {
         console.error('Ошибка генерации:', error);
@@ -151,11 +153,90 @@ async function generateTemplate() {
     }
 }
 
-//Генерация VM-Шаблона
+// Автоматическое копирование после генерации
+async function copyToClipboardAuto() {
+    try {
+        const content = document.getElementById('result').value;
+        if (!content) {
+            console.log('Нет контента для копирования');
+            return;
+        }
+
+        // Универсальное копирование
+        if (navigator.clipboard && window.isSecureContext) {
+            // Modern Clipboard API
+            await navigator.clipboard.writeText(content);
+        } else {
+            // Fallback для старых браузеров/сред
+            const textArea = document.createElement('textarea');
+            textArea.value = content;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            if (!successful) {
+                throw new Error('Copy command failed');
+            }
+        }
+        
+        showAutoCopyNotification();
+        console.log('Код автоматически скопирован в буфер обмена');
+        
+    } catch (error) {
+        console.error('Ошибка автоматического копирования:', error);
+        // Показываем уведомление без упоминания копирования
+        showSuccess('Шаблон успешно сгенерирован!');
+    }
+}
+
+// Специальное уведомление для авто-копирования
+function showAutoCopyNotification() {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+        background: #9b59b6;
+        border-left: 4px solid #8e44ad;
+        max-width: 300px;
+    `;
+    
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 18px;">📋</span>
+            <div>
+                <div style="font-weight: 600;">Шаблон сгенерирован!</div>
+                <div style="font-size: 12px; opacity: 0.9;">Код автоматически скопирован в буфер</div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+        }
+    }, 4000);
+}
+
+// Основная функция генерации VM-шаблона
 function generateVMTemplate(jsonSchema, xsdSchema, testData) {
     console.log('Генерация VM шаблона...');
     console.log('JSON Schema:', jsonSchema);
-    console.log('Test data count:', testData.length); // Может быть 0
+    console.log('Test data count:', testData.length);
     
     let template = `## Velocity Template for EPGU to VIS Integration
 ## Generated automatically
@@ -225,7 +306,7 @@ function generateUserData(userData) {
     return userDataBlock;
 }
 
-// Сохранение шаблона 
+// Сохранение шаблона
 async function saveTemplate() {
     try {
         const content = document.getElementById('result').value;
@@ -250,7 +331,7 @@ async function saveTemplate() {
         serviceCode = serviceCode.toString().replace(/\D/g, '');
         if (!serviceCode) serviceCode = '00000000';
         
-        // Формируем имя файла
+        // Формируем имя файла по шаблону: "xxxxxxxx_Applicant.vm"
         const fileName = `${serviceCode}_Applicant.vm`;
         
         const result = await ipcRenderer.invoke('dialog:saveFile', {
@@ -271,12 +352,27 @@ async function saveTemplate() {
     }
 }
 
-// Копирование в буфер
+// Ручное копирование в буфер (для кнопки)
 async function copyToClipboard() {
     try {
         const content = document.getElementById('result').value;
-        await navigator.clipboard.writeText(content);
-        showSuccess('Скопировано в буфер обмена!');
+        
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(content);
+        } else {
+            const textArea = document.createElement('textarea');
+            textArea.value = content;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+        }
+        
+        showSuccess('Код скопирован в буфер обмена!');
     } catch (error) {
         console.error('Ошибка копирования:', error);
         showError('Ошибка копирования: ' + error.message);
@@ -310,40 +406,54 @@ function showError(message) {
 }
 
 function showNotification(message, type) {
+    // Используем встроенные стили из HTML
     const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        border-radius: 8px;
-        color: white;
-        font-weight: 500;
-        z-index: 1000;
-        animation: slideIn 0.3s ease;
-        ${type === 'success' ? 'background: #27ae60;' : 'background: #e74c3c;'}
-    `;
-    
+    notification.className = `notification ${type}`;
     notification.textContent = message;
     document.body.appendChild(notification);
     
     setTimeout(() => {
-        document.body.removeChild(notification);
+        if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+        }
     }, 4000);
 }
 
-// Добавляем стили для анимации
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
+// Добавляем стили для анимации если их нет в HTML
+if (!document.querySelector('style[data-dynamic]')) {
+    const style = document.createElement('style');
+    style.setAttribute('data-dynamic', 'true');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
-        to {
-            transform: translateX(0);
-            opacity: 1;
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
         }
-    }
-`;
-document.head.appendChild(style);
+        
+        .notification.success {
+            background: #27ae60;
+        }
+        
+        .notification.error {
+            background: #e74c3c;
+        }
+    `;
+    document.head.appendChild(style);
+}
