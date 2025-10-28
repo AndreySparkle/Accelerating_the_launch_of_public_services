@@ -179,6 +179,23 @@
             content: "⚡";
         }
 
+        .auto-copy-notice {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            background: rgba(155, 89, 182, 0.2);
+            border-radius: 6px;
+            border-left: 3px solid #9b59b6;
+        }
+
+        .auto-copy-notice span {
+            color: #9b59b6;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
         #result {
             width: 100%;
             height: 400px;
@@ -224,6 +241,16 @@
             font-style: italic;
         }
 
+        .optional-badge {
+            background: #f39c12;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+            font-weight: 500;
+        }
+
         /* Адаптивность */
         @media (max-width: 768px) {
             body {
@@ -240,6 +267,17 @@
             
             .result-actions button {
                 max-width: none;
+            }
+            
+            .file-section h3 {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            
+            .status {
+                margin-left: 0;
+                margin-top: 5px;
             }
         }
 
@@ -259,6 +297,93 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Стили для уведомлений */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            max-width: 300px;
+        }
+
+        .notification.success {
+            background: #27ae60;
+        }
+
+        .notification.error {
+            background: #e74c3c;
+        }
+
+        .notification.auto-copy {
+            background: #9b59b6;
+            border-left: 4px solid #8e44ad;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Прогресс-бар */
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #ecf0f1;
+            border-radius: 2px;
+            margin-top: 10px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Подсказки */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            font-weight: normal;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -270,42 +395,136 @@
         
         <main>
             <div class="file-section" id="jsonSection">
-                <h3>JSON-схема услуги (ЕПГУ)</h3>
+                <h3>JSON-схема услуги (ЕПГУ) 
+                    <span class="tooltip">ℹ️
+                        <span class="tooltiptext">Описание полей формы с портала Госуслуг. Должен содержать структуру данных формы.</span>
+                    </span>
+                </h3>
                 <button id="loadJsonSchema">Выбрать файл JSON</button>
                 <span class="status" id="jsonSchemaStatus">Файл не выбран</span>
                 <div class="file-info">Описание полей формы с портала Госуслуг</div>
+                <div class="progress-bar" id="jsonProgress">
+                    <div class="progress-fill" id="jsonProgressFill"></div>
+                </div>
             </div>
             
             <div class="file-section" id="xsdSection">
-                <h3>XSD-схема вида сведений (ВИС)</h3>
+                <h3>XSD-схема вида сведений (ВИС)
+                    <span class="tooltip">ℹ️
+                        <span class="tooltiptext">Структура XML, которую ожидает внутренняя ведомственная система</span>
+                    </span>
+                </h3>
                 <button id="loadXsdSchema">Выбрать файл XSD</button>
                 <span class="status" id="xsdSchemaStatus">Файл не выбран</span>
                 <div class="file-info">Структура данных, которую ожидает внутренняя система</div>
+                <div class="progress-bar" id="xsdProgress">
+                    <div class="progress-fill" id="xsdProgressFill"></div>
+                </div>
             </div>
             
             <div class="file-section" id="testDataSection">
-                <h3>Тестовые заявления (JSON)</h3>
+                <h3>Тестовые заявления (JSON) <span class="optional-badge">ОПЦИОНАЛЬНО</span>
+                    <span class="tooltip">ℹ️
+                        <span class="tooltiptext">Примеры заполненных форм для тестирования. Можно выбрать несколько файлов или пропустить этот шаг.</span>
+                    </span>
+                </h3>
                 <button id="loadTestData">Выбрать файлы JSON</button>
-                <span class="status" id="testDataStatus">Файлы не выбраны</span>
-                <div class="file-info">Примеры заполненных форм (можно выбрать несколько)</div>
+                <span class="status" id="testDataStatus">Файлы не выбраны (не обязательно)</span>
+                <div class="file-info">Примеры заполненных форм для тестирования (можно пропустить)</div>
+                <div class="progress-bar" id="testDataProgress">
+                    <div class="progress-fill" id="testDataProgressFill"></div>
+                </div>
             </div>
             
             <div class="action-section">
                 <button id="generateBtn" disabled>
                     <span class="btn-text">Сгенерировать шаблон</span>
                 </button>
+                <div class="file-info">Для генерации необходимо загрузить JSON и XSD схемы</div>
             </div>
             
             <div class="result-section" id="resultSection">
                 <h3>Сгенерированный VM-шаблон</h3>
+                <div class="auto-copy-notice">
+                    <span style="font-size: 16px;">📋</span>
+                    <span>Код автоматически скопирован в буфер обмена</span>
+                </div>
                 <textarea id="result" readonly placeholder="Здесь появится сгенерированный шаблон..."></textarea>
                 <div class="result-actions">
                     <button id="saveBtn">💾 Сохранить как .vm файл</button>
-                    <button id="copyBtn">📋 Скопировать в буфер</button>
+                    <button id="copyBtn">📋 Скопировать ещё раз</button>
                 </div>
             </div>
         </main>
     </div>
+
+    <script>
+        // Базовые функции для уведомлений
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
+            }, 4000);
+        }
+
+        function showSuccess(message) {
+            showNotification(message, 'success');
+        }
+
+        function showError(message) {
+            showNotification(message, 'error');
+        }
+
+        function showAutoCopyNotification() {
+            const notification = document.createElement('div');
+            notification.className = 'notification auto-copy';
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 18px;">📋</span>
+                    <div>
+                        <div style="font-weight: 600;">Шаблон сгенерирован!</div>
+                        <div style="font-size: 12px; opacity: 0.9;">Код автоматически скопирован в буфер</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
+            }, 4000);
+        }
+
+        // Функция для показа загрузки
+        function showProgress(progressBarId, show) {
+            const progressBar = document.getElementById(progressBarId);
+            if (progressBar) {
+                progressBar.style.display = show ? 'block' : 'none';
+                if (show) {
+                    const fill = progressBar.querySelector('.progress-fill');
+                    if (fill) {
+                        fill.style.width = '0%';
+                        setTimeout(() => {
+                            fill.style.width = '100%';
+                        }, 10);
+                    }
+                }
+            }
+        }
+
+        // Добавляем глобальные функции для использования в renderer.js
+        window.showSuccess = showSuccess;
+        window.showError = showError;
+        window.showAutoCopyNotification = showAutoCopyNotification;
+        window.showProgress = showProgress;
+    </script>
 
     <script src="renderer.js"></script>
 </body>
