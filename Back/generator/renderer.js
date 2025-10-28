@@ -240,7 +240,7 @@ async function saveTemplate() {
                 { name: 'VM Templates', extensions: ['vm'] },
                 { name: 'All Files', extensions: ['*'] }
             ],
-            defaultPath: fileName  // ← Теперь с правильным именем
+            defaultPath: fileName 
         });
         
         if (!result.canceled) {
