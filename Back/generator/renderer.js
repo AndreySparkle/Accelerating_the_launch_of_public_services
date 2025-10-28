@@ -222,12 +222,25 @@ function generateUserData(userData) {
 async function saveTemplate() {
     try {
         const content = document.getElementById('result').value;
+        
+        // Получаем код услуги из JSON схемы
+        let serviceCode = '00000000'; // код по умолчанию
+        
+        if (jsonSchema && jsonSchema.formData && jsonSchema.formData.ServiceCode) {
+            serviceCode = jsonSchema.formData.ServiceCode;
+        } else if (testData.length > 0 && testData[0].formData && testData[0].formData.ServiceCode) {
+            serviceCode = testData[0].formData.ServiceCode;
+        }
+        
+        // Формируем имя файла по шаблону
+        const fileName = `${serviceCode}_Applicant.vm`;
+        
         const result = await ipcRenderer.invoke('dialog:saveFile', {
             filters: [
                 { name: 'VM Templates', extensions: ['vm'] },
                 { name: 'All Files', extensions: ['*'] }
             ],
-            defaultPath: 'generated_template.vm'
+            defaultPath: fileName  // ← Теперь с правильным именем
         });
         
         if (!result.canceled) {
