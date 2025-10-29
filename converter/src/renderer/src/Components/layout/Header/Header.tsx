@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 const Header: React.FC = () => {
   return (
     <header>
-      <div className="container mx-auto py-4 px-15">
+      <div className="container mx-auto py-4 px-15 flex justify-start">
         <Link to="/">
           <img src={logo} alt="Госуслуги" width="124" height="22" />
         </Link>

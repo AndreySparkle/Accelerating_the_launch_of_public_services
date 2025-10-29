@@ -44,7 +44,7 @@ const HelpModal: React.FC<Props> = ({ onClose }) => {
       <div
         ref={modalInnerRef}
         className="max-w-250 bg-white flex flex-col p-9 gap-y-12 rounded-xl z-40"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         <div className={'flex justify-between items-center'}>
           <span className={'font-bold text-32 leading-6'}>
