@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom'
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { fileChoose, helpers, howToCreate } from './helpModal.data'
 
 interface Props {
@@ -7,9 +7,45 @@ interface Props {
 }
 
 const HelpModal: React.FC<Props> = ({ onClose }) => {
+  const modalInnerRef = useRef<HTMLDivElement>(null)
+  const backdropRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleEscClick = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    const handleBackdropClick = (event: MouseEvent): void => {
+      if (event.target === backdropRef.current) {
+        onClose()
+      }
+    }
+
+    window.addEventListener('keydown', handleEscClick)
+    backdropRef.current?.addEventListener('click', handleBackdropClick)
+
+    document.body.style.overflow = 'hidden'
+
+    return (): void => {
+      window.removeEventListener('keydown', handleEscClick)
+      backdropRef.current?.removeEventListener('click', handleBackdropClick)
+
+      document.body.style.overflow = 'unset'
+    }
+  }, [onClose])
+
   return createPortal(
-    <div className="fixed inset-0 backdrop-blur-xs flex justify-center items-center bg-black/50 font-lato">
-      <div className="max-w-180 bg-white flex flex-col p-9 gap-y-12 rounded-xl">
+    <div
+      ref={backdropRef}
+      className="fixed inset-0 backdrop-blur-xs flex justify-center items-center bg-black/50 font-lato z-30"
+    >
+      <div
+        ref={modalInnerRef}
+        className="max-w-250 bg-white flex flex-col p-9 gap-y-12 rounded-xl z-40"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className={'flex justify-between items-center'}>
           <span className={'font-bold text-32 leading-6'}>
             Как создать новый шаблон?

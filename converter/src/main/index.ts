@@ -1,15 +1,28 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, nativeImage } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
+// Функция для получения пути к иконке в зависимости от платформы
+const getPlatformIcon = (): string => {
+  if (process.platform === 'win32') {
+    return '../../resources/icon.ico'
+  } else {
+    return '../../resources/icon.png'
+  }
+}
+
 function createWindow(): void {
+  // Создаем нативную иконку из файла
+  const appIcon = nativeImage.createFromPath(join(__dirname, getPlatformIcon()))
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
     autoHideMenuBar: true,
+    icon: appIcon, // Устанавливаем иконку для окна
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -69,6 +82,3 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
